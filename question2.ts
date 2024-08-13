@@ -17,7 +17,7 @@ type Address = {
   lon: number;
 };
 
-async function fetchCustomerNumbers(): Promise<number> {
+export async function fetchCustomerNumbers(): Promise<number> {
   const response = await axios.get(`${BASE_URL}/customer_numbers`, {
     headers: {
       "X-API-KEY": API_KEY,
@@ -26,7 +26,9 @@ async function fetchCustomerNumbers(): Promise<number> {
   return response.data;
 }
 
-async function fetchCustomerAddress(customerNumber: number): Promise<Address> {
+export async function fetchCustomerAddress(
+  customerNumber: number
+): Promise<Address> {
   const response = await axios.get(
     `${BASE_URL}/address_inventory/${customerNumber}`,
     {
@@ -38,7 +40,7 @@ async function fetchCustomerAddress(customerNumber: number): Promise<Address> {
   return response.data;
 }
 
-function validateAddress(address: Address): boolean {
+export function validateAddress(address: Address): boolean {
   return (
     typeof address.id === "number" &&
     typeof address.first_name === "string" &&
@@ -52,7 +54,7 @@ function validateAddress(address: Address): boolean {
   );
 }
 
-async function retrieveAllAddresses(): Promise<Address[]> {
+export async function retrieveAllAddresses(): Promise<Address[]> {
   const customerCount = await fetchCustomerNumbers();
   const addresses: Address[] = [];
 
@@ -66,7 +68,7 @@ async function retrieveAllAddresses(): Promise<Address[]> {
   return addresses;
 }
 
-function saveAddressesToCSV(addresses: Address[]): string {
+export function saveAddressesToCSV(addresses: Address[]): string {
   const csv = parse(addresses);
   const fileName = "customer_addresses.csv";
   writeFileSync(fileName, csv);
