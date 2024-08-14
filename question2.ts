@@ -18,26 +18,47 @@ type Address = {
 };
 
 export async function fetchCustomerNumbers(): Promise<number> {
-  const response = await axios.get(`${BASE_URL}/customer_numbers`, {
-    headers: {
-      "X-API-KEY": API_KEY,
-    },
-  });
-  return response.data;
+  try {
+    const response = await axios.get(`${BASE_URL}/customer_numbers`, {
+      headers: {
+        "X-API-KEY": API_KEY,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.code === "ENOTFOUND") {
+      console.error("Domain is unrecognized", error);
+    } else {
+      console.error("Error fetching customer numbers:", error);
+    }
+    throw new Error("Failed to fetch customer numbers");
+  }
 }
 
 export async function fetchCustomerAddress(
   customerNumber: number
 ): Promise<Address> {
-  const response = await axios.get(
-    `${BASE_URL}/address_inventory/${customerNumber}`,
-    {
-      headers: {
-        "X-API-KEY": API_KEY,
-      },
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/address_inventory/${customerNumber}`,
+      {
+        headers: {
+          "X-API-KEY": API_KEY,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.code === "ENOTFOUND") {
+      console.error("Domain is unrecognized", error);
+    } else {
+      console.error(
+        `Error fetching address for customer ${customerNumber}:`,
+        error
+      );
     }
-  );
-  return response.data;
+    throw new Error(`Failed to fetch address for customer ${customerNumber}`);
+  }
 }
 
 export function validateAddress(address: Address): boolean {
@@ -55,17 +76,26 @@ export function validateAddress(address: Address): boolean {
 }
 
 export async function retrieveAllAddresses(): Promise<Address[]> {
-  const customerCount = await fetchCustomerNumbers();
-  const addresses: Address[] = [];
+  try {
+    const customerCount = await fetchCustomerNumbers();
+    const addresses: Address[] = [];
 
-  for (let i = 1; i <= customerCount; i++) {
-    const address = await fetchCustomerAddress(i);
-    if (validateAddress(address)) {
-      addresses.push(address);
+    for (let i = 1; i <= customerCount; i++) {
+      try {
+        const address = await fetchCustomerAddress(i);
+        if (validateAddress(address)) {
+          addresses.push(address);
+        }
+      } catch (error) {
+        console.error(`Skipping customer ${i} due to error:`, error);
+      }
     }
-  }
 
-  return addresses;
+    return addresses;
+  } catch (error) {
+    console.error("Error retrieving all addresses:", error);
+    throw new Error("Failed to retrieve all addresses");
+  }
 }
 
 export function saveAddressesToCSV(addresses: Address[]): string {

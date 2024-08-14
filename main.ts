@@ -3,12 +3,12 @@ type InternetHub = {
   serial_number: string;
 };
 
-type HubsData = {
+export type HubsData = {
   comment: string;
   Internet_hubs: InternetHub[];
 };
 
-function assignSerialNumbers(jsonData: HubsData): {
+export function assignSerialNumbers(jsonData: HubsData): {
   original: HubsData;
   updated: HubsData;
 } {
